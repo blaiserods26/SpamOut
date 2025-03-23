@@ -6,14 +6,12 @@ import os
 import uuid
 import subprocess
 
-# Update these paths to match your setup
-REPO_PATH = "C:\\Users\\V\\Documents\\10257\\mkdocs-spam-out"  # Your GitHub repository
-DOCS_PATH = os.path.join(REPO_PATH, "docs")  # Docs folder inside your repository
-TEMPLATES_PATH = "C:\\Users\\V\\Documents\\10257\\SpamOut\\email_html"  # Where your HTML templates are stored
+REPO_PATH = "C:\\Users\\V\\Documents\\10257\\mkdocs-spam-out"
+DOCS_PATH = os.path.join(REPO_PATH, "docs")
+TEMPLATES_PATH = "C:\\Users\\V\\Documents\\10257\\SpamOut\\email_html"
 
 def generate_attachment_report(attachment_results):
     try:
-        # Ensure the docs directory exists
         os.makedirs(DOCS_PATH, exist_ok=True)
         
         report_data = {
@@ -31,7 +29,6 @@ def generate_attachment_report(attachment_results):
             ]
         }
 
-        # Use absolute path to the template
         template_path = os.path.join(TEMPLATES_PATH, "attachment_report.html")
         with open(template_path, "r") as file:
             template_content = file.read()
@@ -42,7 +39,6 @@ def generate_attachment_report(attachment_results):
         report_id = str(uuid.uuid4())[:8]
         report_filename = f"report_{report_id}.html"
 
-        # Save directly to the docs folder in your repository
         report_filepath = os.path.join(DOCS_PATH, report_filename)
         with open(report_filepath, "w", encoding="utf-8") as file:
             file.write(report_html)
@@ -59,16 +55,12 @@ def commit_and_push_to_github(report_filepath, report_filename):
         # Change to the repository directory
         os.chdir(REPO_PATH)
 
-        # Pull the latest changes from the remote repository
         subprocess.run(["git", "pull", "origin", "main"], check=True)
         
-        # Add the new file
         subprocess.run(["git", "add", f"docs/{report_filename}"], check=True)
         
-        # Commit the changes
         subprocess.run(["git", "commit", "-m", f"Add security report {report_filename}"], check=True)
         
-        # Push to GitHub
         subprocess.run(["git", "push", "origin", "main"], check=True)
         
         print(f"Successfully committed and pushed {report_filename} to GitHub.")
@@ -79,20 +71,16 @@ def commit_and_push_to_github(report_filepath, report_filename):
 
 def send_analysis_report(security_analysis, attachment_results):
     try:
-        # Generate the report
         report_filepath, report_filename = generate_attachment_report(attachment_results)
         if not report_filepath:
             raise Exception("Failed to generate report")
         
-        # Commit and push to GitHub
         success = commit_and_push_to_github(report_filepath, report_filename)
         if not success:
             raise Exception("Failed to push to GitHub")
         
-        # GitHub Pages URL
         deploy_url = f"https://NL0711.github.io/mkdocs-spam-out/{report_filename}"
         
-        # Prepare email
         msg = MIMEMultipart()
         msg["From"] = "cherrypie6923@gmail.com"
         msg["To"] = "poppyexs@gmail.com"
@@ -148,7 +136,7 @@ def send_analysis_report(security_analysis, attachment_results):
     except Exception as e:
         print(f"Error sending email: {e}")
 
-# Test the function with dummy data
+# Test
 send_analysis_report({'threats_detected': False, 'email': 'aaaa@gmail.com', 'domain': 'gmail.com', 'overall_score': '60', 'overall_grade': 'B'},
                       {'invoice_12345.pdf': {'status': 'safe', 'details': 'No threats detected'},
                        'report.docx': {'status': 'unsafe', 'details': 'Threats detected!'}})
