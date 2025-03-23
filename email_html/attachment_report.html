@@ -7,12 +7,11 @@
   <meta name="x-apple-disable-message-reformatting" />
   <meta content="telephone=no,address=no,email=no,date=no,url=no" name="format-detection" />
   <title>Attachment Report</title>
-  
+
   <link href="https://fonts.googleapis.com/css?family=Inter:400,500,600" rel="stylesheet" type="text/css">
   <link href="https://fonts.googleapis.com/css?family=Outfit:400" rel="stylesheet" type="text/css">
-  
+
   <style>
-    /* Base styles */
     html, body {
       margin: 0 !important;
       padding: 0 !important;
@@ -33,8 +32,7 @@
     img {
       -ms-interpolation-mode: bicubic;
     }
-    
-    /* Responsive styles */
+
     @media only screen and (max-width: 599px) {
       .email-container {
         width: 100% !important;
@@ -79,7 +77,7 @@
                 <img src="https://media.marka-img.com/bf85e0d6/g8yqosRfYydBlOSbvZeagYOfPpvJwV.png" width="204" style="max-width:204px; width: 100%; height: auto; display: block;">
               </td>
             </tr>
-            
+
             <!-- Report title -->
             <tr>
               <td align="center" style="padding: 20px 24px 0;">
@@ -88,7 +86,7 @@
                 </div>
               </td>
             </tr>
-            
+
             <!-- Summary -->
             <tr>
               <td align="center" style="padding: 10px 24px 20px;">
@@ -97,7 +95,7 @@
                 </div>
               </td>
             </tr>
-            
+
             <!-- Divider -->
             <tr>
               <td style="padding: 0 24px;">
@@ -106,7 +104,7 @@
                 </table>
               </td>
             </tr>
-            
+
             <!-- File list header -->
             <tr>
               <td style="padding: 16px 24px;">
@@ -119,22 +117,33 @@
                 </table>
               </td>
             </tr>
+
+            <!-- File list -->
+            {% for file in files %}
             <tr>
               <td style="padding: 0 24px 8px;">
                 <table cellpadding="0" cellspacing="0" width="100%" class="file-row" style="border: 1px solid #e0e0e0; border-radius: 8px; overflow: hidden;">
                   <tr>
-                    <td width="40%" style="background-color: #f9f9ff; padding: 12px 8px; color:#1f2635; font-family:Inter,Arial,sans-serif; font-size:14px;" class="file-cell text-dark">invoice_12345.pdf</td>
+                    <td width="40%" style="background-color: #f9f9ff; padding: 12px 8px; color:#1f2635; font-family:Inter,Arial,sans-serif; font-size:14px;" class="file-cell text-dark">
+                      {{ file.filename }}
+                    </td>
                     <td width="30%" style="background-color: #f9f9ff; padding: 12px 8px;" class="file-cell">
-                      <div class="status-good" style=" border-radius: 12px; padding: 4px 8px; display: inline-block; max-width: 100%;">
-                        <span class="status-text" style="color:#3BB54A; font-weight:500; font-family:Inter,Arial,sans-serif; font-size:14px;">Safe</span>
-                        <img src="https://media.marka-img.com/bf85e0d6/7PdfZxrlupddvCC3ityTf7lixZeenU.png" width="12" style="margin-left: 4px; width:12px; height:auto; display:inline-block; vertical-align:middle;">
+                      <div class="status-{{ 'good' if file.status == 'safe' else 'bad' }}" style="border-radius: 12px; padding: 4px 8px; display: inline-block; max-width: 100%;">
+                        <span class="status-text" style="color:{{ file.status_color }}; font-weight:500; font-family:Inter,Arial,sans-serif; font-size:14px;">
+                          {{ file.status.capitalize() }}
+                        </span>
+                        <img src="{{ file.status_icon }}" width="12" style="margin-left: 4px; width:12px; height:auto; display:inline-block; vertical-align:middle;">
                       </div>
                     </td>
-                    <td width="30%" style="background-color: #f9f9ff; padding: 12px 8px; color:#667085; font-family:Inter,Arial,sans-serif; font-size:14px;" class="file-cell text-dark">No threats detected</td>
+                    <td width="30%" style="background-color: #f9f9ff; padding: 12px 8px; color:#667085; font-family:Inter,Arial,sans-serif; font-size:14px;" class="file-cell text-dark">
+                      {{ file.details }}
+                    </td>
                   </tr>
                 </table>
               </td>
             </tr>
+            {% endfor %}
+
           </table>
         </td>
       </tr>

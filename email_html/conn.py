@@ -3,7 +3,7 @@ from email.mime.text import MIMEText
 import smtplib
 from jinja2 import Template
 
-def send_analysis_report(security_analysis):
+def send_analysis_report(security_analysis, attachment_results):
     """Send analysis report email."""
     try:
         msg = MIMEMultipart()
@@ -26,19 +26,24 @@ def send_analysis_report(security_analysis):
         # Prepare the data for the email template
         email_data = {
             "securityAnalysis": {
-                "email": "aaaa@gmail.com",
-                "domain": "gmail.com",
-                "overallScore": "60",
-                "overallGrade": "B",
+                "email": security_analysis.get('email'),
+                "domain": security_analysis.get('domain'),
+                "overallScore": security_analysis.get('overall_score'),
+                "overallGrade": security_analysis.get('overall_grade'),
                 "statusText": status_text,
                 "statusImgSrc": status_img_src
             },
-            "attachmentResults": [
-                {"filename": "index.html", 
-                 "status": "safe", 
-                 "details": "No threats detected"
-                 }
-            ],
+            "attachmentResults": {
+                filename: {
+                    "status": result['status'],
+                    "status_color": "#3BB54A" if result['status'] == 'safe' else "#ff3b30",
+                    "status_icon": "https://media.marka-img.com/bf85e0d6/7PdfZxrlupddvCC3ityTf7lixZeenU.png" 
+                                    if result['status'] == 'safe'
+                                    else "https://media.marka-img.com/bf85e0d6/eES9YTnRMPkqXGq8r0KsbrlOeBKa35.png",
+                    "details": result.get('details', 'No details provided')
+                }
+                for filename, result in attachment_results.items()
+            },
             "templateStyle": {
                 "score_color": status_color,
                 "status_color": status_color,
@@ -65,5 +70,6 @@ def send_analysis_report(security_analysis):
     except Exception as e:
         print(f"Error sending email: {e}")
 
-# Test the function with dummy data
-send_analysis_report({'threats_detected': False})
+send_analysis_report({'threats_detected': False, 'email': 'aaaa@gmail.com', 'domain': 'gmail.com', 'overall_score': '60', 'overall_grade': 'B'},
+                      {'invoice_12345.pdf': {'status': 'safe', 'details': 'No threats detected'},
+                       'report.docx': {'status': 'unsafe', 'details': 'Threats detected!'}})
