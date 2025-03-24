@@ -41,10 +41,20 @@ QUARANTINE_PATH = "./quarantine"
 VT_API_KEY = "1b817d672b36edeb26c65ce8e63836a1bf37d936bceb9fb27e07e53272d31366"
 VT_API_ENDPOINT = "https://www.virustotal.com/vtapi/v2/file/report"
 
+# Email HTML directory
+EMAIL_HTML_DIR = "./email_html"
+if not os.path.exists(EMAIL_HTML_DIR):
+    os.makedirs(EMAIL_HTML_DIR)
+
 # Ensure directories exist
 for directory in [ATTACHMENT_SAVE_PATH, QUARANTINE_PATH]:
     if not os.path.exists(directory):
         os.makedirs(directory)
+
+# Add this with your other initialization code
+EMAIL_HTML_PATH = os.path.join(os.path.dirname(__file__), 'email_html/report.html')
+if not os.path.exists(EMAIL_HTML_PATH):
+    raise FileNotFoundError(f"HTML template not found at {EMAIL_HTML_PATH}")
 
 class EmailSecurityAnalyzer:
     def __init__(self):
@@ -607,50 +617,90 @@ def handle_attachment(part, filename, sender_email):
         return False
 
 def send_analysis_report(receiver_email, security_analysis, attachment_results):
-    """Send analysis report email."""
+    """Send analysis report email using HTML template."""
     try:
-        msg = MIMEMultipart()
+        # Create message container - the correct MIME type is multipart/alternative.
+        msg = MIMEMultipart('alternative')
         msg["From"] = EMAIL_ACCOUNT
         msg["To"] = receiver_email
         msg["Subject"] = "Email Security Analysis Report"
+        msg["MIME-Version"] = "1.0"
+        msg["Content-Type"] = "text/html; charset=UTF-8"
 
-        # Create the email body with security analysis results
-        body = "Email Security Analysis Report\n\n"
-        body += f"Analyzed Email: {security_analysis['email']}\n"
-        body += f"Domain: {security_analysis['domain']}\n"
-        body += f"Overall Security Score: {security_analysis['overall_score']} (Grade: {security_analysis['overall_grade']})\n\n"
+        # Define template style based on security score
+        score = security_analysis['overall_score']
+        template_style = {
+            'score_color': '#16a34a' if score >= 80 else '#ea580c' if score >= 60 else '#dc2626',
+            'status_color': '#16a34a' if score >= 80 else '#ea580c' if score >= 60 else '#dc2626',
+            'status_bg_color': '#dcfce7' if score >= 80 else '#fff7ed' if score >= 60 else '#fee2e2'
+        }
 
-        # Add SPF, DKIM, DMARC details
-        for protocol in ['SPF', 'DKIM', 'DMARC']:
-            result = security_analysis[protocol.lower()]
-            body += f"{protocol} Analysis:\n"
-            body += f"  Score: {result['score']} (Grade: {result['grade']})\n"
-            if result.get('issues'):
-                body += f"  Issues: {', '.join(result['issues'])}\n"
-            if result.get('recommendations'):
-                body += f"  Recommendations: {', '.join(result['recommendations'])}\n"
-            body += "\n"
+        # Define security analysis data for template
+        security_data = {
+            'email': security_analysis['email'],
+            'domain': security_analysis['domain'],
+            'overallScore': f"{score}/100",
+            'statusText': 'Secure' if score >= 80 else 'Warning' if score >= 60 else 'Critical',
+            'statusImgSrc': (
+                'https://media.marka-img.com/bf85e0d6/check.png' if score >= 80 
+                else 'https://media.marka-img.com/bf85e0d6/warning.png' if score >= 60 
+                else 'https://media.marka-img.com/bf85e0d6/error.png'
+            )
+        }
 
-        # Add attachment analysis results
-        if attachment_results:
-            body += "\nAttachment Analysis:\n"
-            for filename, result in attachment_results.items():
-                body += f"\nFile: {filename}\n"
-                body += f"Status: {result['status']}\n"
-                if 'details' in result:
-                    body += f"Details: {result['details']}\n"
+        # Read HTML template
+        template_path = os.path.join(os.path.dirname(__file__), 'email_html/report.html')
+        with open(template_path, 'r', encoding='utf-8') as file:
+            html_template = file.read()
 
-        msg.attach(MIMEText(body, "plain"))
+        # Replace template variables
+        html_content = html_template.replace('{{ templateStyle.status_color }}', template_style['status_color'])
+        html_content = html_content.replace('{{ templateStyle.status_bg_color }}', template_style['status_bg_color'])
+        html_content = html_content.replace('{{ templateStyle.score_color }}', template_style['score_color'])
+        
+        for key, value in security_data.items():
+            html_content = html_content.replace(f'{{ securityAnalysis.{key} }}', str(value))
 
-        server = smtplib.SMTP(SMTP_SERVER, 587)
-        server.starttls()
-        server.login(EMAIL_ACCOUNT, EMAIL_PASSWORD)
-        server.sendmail(EMAIL_ACCOUNT, receiver_email, msg.as_string())
-        server.quit()
+        # Create download URL for detailed report
+        download_url = "#"  # Replace with actual URL if needed
+        html_content = html_content.replace('{{download_url}}', download_url)
 
-        print(f"Analysis report sent to {receiver_email}")
+        # Create plain text version
+        plain_text = f"""
+Email Security Analysis Report
+
+Analyzed Email: {security_analysis['email']}
+Domain: {security_analysis['domain']}
+Overall Security Score: {score}/100
+Status: {security_data['statusText']}
+
+For detailed report, please view this email in an HTML-compatible email client.
+"""
+        # The order of these attachments is important - attach plain text first, then HTML
+        part1 = MIMEText(plain_text, 'plain')
+        part2 = MIMEText(html_content, 'html')
+
+        msg.attach(part1)
+        msg.attach(part2)
+
+        # Create SMTP connection in context manager
+        with smtplib.SMTP(SMTP_SERVER, 587) as server:
+            server.starttls()
+            server.login(EMAIL_ACCOUNT, EMAIL_PASSWORD)
+            server.send_message(msg)
+
+        print(f"HTML Analysis report sent to {receiver_email}")
+        
+        # Add this inside the try block of send_analysis_report, after reading the template
+        print("Debug: HTML template length:", len(html_template))
+        print("Debug: First 100 chars of template:", html_template[:100])
+        
+    except FileNotFoundError:
+        print(f"Error: HTML template file not found at {template_path}")
+        raise
     except Exception as e:
-        print("Error sending analysis report:", e)
+        print(f"Error sending analysis report: {str(e)}")
+        raise
 
 def send_security_alert(sender_email, security_results):
     """Send security alert email to the sender."""

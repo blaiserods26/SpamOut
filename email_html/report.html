@@ -1,5 +1,4 @@
-<!doctype html>
-<html lang="en" xmlns="http://www.w3.org/1999/xhtml" xmlns:v="urn:schemas-microsoft-com:vml" xmlns:o="urn:schemas-microsoft-com:office:office">
+<html>
 <head>
   <meta charset="utf-8" />
   <meta content="width=device-width" name="viewport" />
@@ -61,7 +60,7 @@
         color: #ffffff !important;
       }
       .status-txt, .threat-status {
-        color: {{ templateStyle.status_color }} !important;
+        color: {templateStyle.status_color} !important;
       }
       .divider {
         border-color: #3a4255 !important;
@@ -141,13 +140,13 @@
 
                 <!-- Score value -->
                 <div style="margin: 6px 0; display: inline-block; border: 2px solid #d4d4ee; border-radius: 4px; padding: 0 10px;" class="border-light">
-                  <span style="color:{{ templateStyle.score_color }}; font-weight:600; font-family:Inter,Arial,sans-serif; font-size:24px; line-height:36px;">{{ securityAnalysis.overallScore }}</span>
+                  <span style="color:{{ templateStyle.score_color }}; font-weight:600; font-family:Inter,Arial,sans-serif; font-size:24px; line-height:36px;">{ securityAnalysis.overallScore }</span>
                 </div>
 
                 <!-- Analyzed email -->
                 <div style="margin-top: 16px; background-color:#efeffe; border-left: 5px solid #6461f2; padding: 24px; width: 320px;" class="bg-light">
                   <div style="color:#6461f2; font-weight:600; font-family:Inter,Arial,sans-serif; font-size:19px; line-height:24px;">
-                    <a style="color:#7876f0; text-decoration:none;">{{ securityAnalysis.email }}</a>
+                    <a style="color:#7876f0; text-decoration:none;">{ securityAnalysis.email }</a>
                   </div>
                   <div style="color:#667085; font-weight:500; font-family:Inter,Arial,sans-serif; font-size:13px; line-height:24px;" class="text-dark">
                     Analysed Email
@@ -157,7 +156,7 @@
                 <!-- Domain info -->
                 <div style="margin-top: 16px; border: 2px solid #efeffe; border-radius: 4px; padding: 4px 10px; display: inline-block;" class="border-light">
                   <span style="color:#535d72; font-family:Inter,Arial,sans-serif; font-size:15px; line-height:24px;" class="text-dark">Domain:</span>
-                  <span style="color:#7876f0; font-family:Inter,Arial,sans-serif; font-size:15px; line-height:24px; margin-left: 7px;">{{ securityAnalysis.domain }}</span>
+                  <span style="color:#7876f0; font-family:Inter,Arial,sans-serif; font-size:15px; line-height:24px; margin-left: 7px;">{ securityAnalysis.domain }</span>
                 </div>
 
                 <!-- Divider -->
@@ -183,7 +182,7 @@
                   <!-- Status section -->
                   <div class="status-section" style="margin-top: 24px; padding: 7px 0; background-color:{{ templateStyle.status_bg_color }};">
                     <div class="threat-status" style="color:{{ templateStyle.status_color }}; font-family:Outfit,Arial,sans-serif; font-size:18px; letter-spacing:-0.01em; line-height:28px; text-align:center;">
-                      {{ securityAnalysis.statusText }}
+                      { securityAnalysis.statusText }
                     </div>
                     <div style="text-align: center; margin: 8px 0;">
                       <span class="status-txt" style="color:{{ templateStyle.status_color }}; font-family:Outfit,Arial,sans-serif; font-size:18px; letter-spacing:-0.01em; line-height:28px; vertical-align:middle;">Status</span>
