@@ -1,5 +1,4 @@
 import { Button, Card } from "flowbite-react";
-import { Router } from "react-router-dom";
 
 const LandingPage = () => {
   return (

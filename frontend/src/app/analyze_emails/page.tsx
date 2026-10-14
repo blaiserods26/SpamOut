@@ -66,7 +66,7 @@ export default function AnalyzeEmails() {
         </thead>
         <tbody>
           {emailResults.map((result) => (
-            <tr key={result.id}></tr>
+            <tr key={result.id}>
               <td className="py-2 px-4 border-b">{result.sender}</td>
               <td className="py-2 px-4 border-b">{result.subject}</td>
               <td className="py-2 px-4 border-b">{result.snippet}</td>
