@@ -1,0 +1,53 @@
+# Environment variables & secrets
+.env
+.env.local
+.env.*.local
+credentials.json
+token.json
+*.pem
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+env/
+venv/
+.venv/
+ENV/
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+
+# Data & Runtime generated files
+attachments/
+quarantine/
+*.h5
+
+# Node & Next.js
+node_modules/
+.next/
+out/
+.vercel
+.firebase/
+
+# IDE & OS
+.idea/
+.vscode/
+*.swp
+*.swo
+.DS_Store
+Thumbs.db

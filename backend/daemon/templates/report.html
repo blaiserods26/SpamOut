@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta content="width=device-width, initial-scale=1.0" name="viewport" />
+  <meta content="IE=edge" http-equiv="X-UA-Compatible" />
+  <title>SpamOut - Security Analysis Report</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <style>
+    body, html {
+      margin: 0 !important;
+      padding: 0 !important;
+      background-color: #f5f6ff;
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+      color: #1f2635;
+    }
+    table {
+      border-collapse: collapse;
+      mso-table-lspace: 0pt;
+      mso-table-rspace: 0pt;
+    }
+    .email-container {
+      max-width: 620px;
+      margin: 20px auto;
+      background-color: #ffffff;
+      border: 1px solid #e0e3eb;
+      border-radius: 12px;
+      overflow: hidden;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+    }
+    .badge {
+      display: inline-block;
+      padding: 4px 10px;
+      border-radius: 6px;
+      font-size: 13px;
+      font-weight: 600;
+    }
+    .badge-safe { background-color: #dcfce7; color: #16a34a; }
+    .badge-warning { background-color: #fff7ed; color: #ea580c; }
+    .badge-danger { background-color: #fee2e2; color: #dc2626; }
+    .card {
+      background-color: #f8f9fc;
+      border: 1px solid #e9ecf2;
+      border-radius: 8px;
+      padding: 14px 18px;
+      margin-bottom: 12px;
+    }
+    @media (prefers-color-scheme: dark) {
+      body, html { background-color: #121826; }
+      .email-container { background-color: #1a2234; border-color: #2b364d; color: #f1f5f9; }
+      .card { background-color: #232d42; border-color: #334155; }
+    }
+  </style>
+</head>
+<body style="background-color: #f5f6ff; padding: 10px;">
+  <div class="email-container">
+    <!-- Header -->
+    <div style="background: linear-gradient(135deg, #4f46e5 0%, #6366f1 100%); padding: 24px 20px; text-align: center;">
+      <h1 style="color: #ffffff; margin: 0; font-size: 24px; font-weight: 700; letter-spacing: -0.5px;">🛡️ SpamOut Analysis Report</h1>
+      <p style="color: #e0e7ff; margin: 6px 0 0; font-size: 13px;">Automated Email Authentication & Threat Breakdown</p>
+    </div>
+
+    <div style="padding: 24px 28px;">
+      <!-- Main Status Banner -->
+      <div style="text-align: center; padding: 20px 16px; background-color: {{ report.status_bg_color }}; border-radius: 10px; margin-bottom: 24px;">
+        <img src="{{ report.status_img_src }}" width="72" height="72" alt="{{ report.status_text }}" style="display: block; margin: 0 auto 10px;" />
+        <div style="font-size: 28px; font-weight: 700; color: {{ report.status_color }};">
+          {{ report.overall_score }} / 100
+        </div>
+        <div style="font-size: 16px; font-weight: 600; color: {{ report.status_color }}; text-transform: uppercase; letter-spacing: 0.5px;">
+          Grade: {{ report.overall_grade }} ({{ report.status_text }})
+        </div>
+      </div>
+
+      <!-- Target Info -->
+      <div class="card">
+        <table width="100%">
+          <tr>
+            <td style="padding: 4px 0; font-size: 13px; color: #64748b;">Sender:</td>
+            <td style="padding: 4px 0; font-size: 13px; font-weight: 600; text-align: right;">{{ report.email }}</td>
+          </tr>
+          <tr>
+            <td style="padding: 4px 0; font-size: 13px; color: #64748b;">Domain:</td>
+            <td style="padding: 4px 0; font-size: 13px; font-weight: 600; text-align: right;">{{ report.domain }}</td>
+          </tr>
+        </table>
+      </div>
+
+      <!-- Authentication Checks Section -->
+      <h3 style="font-size: 16px; margin: 20px 0 10px; color: #334155; font-weight: 600;">Email Authentication (DNS)</h3>
+      <table width="100%" style="margin-bottom: 20px;">
+        <tr>
+          <!-- SPF -->
+          <td width="32%" style="padding: 4px;">
+            <div class="card" style="text-align: center; margin: 0; padding: 12px 8px;">
+              <div style="font-size: 12px; color: #64748b; font-weight: 600;">SPF</div>
+              <div style="font-size: 18px; font-weight: 700; margin: 4px 0; color: {% if report.spf.grade in ['A', 'B'] %}#16a34a{% else %}#dc2626{% endif %};">
+                {{ report.spf.grade }}
+              </div>
+              <div style="font-size: 11px; color: #64748b;">{{ report.spf.score }}%</div>
+            </div>
+          </td>
+          <!-- DKIM -->
+          <td width="32%" style="padding: 4px;">
+            <div class="card" style="text-align: center; margin: 0; padding: 12px 8px;">
+              <div style="font-size: 12px; color: #64748b; font-weight: 600;">DKIM</div>
+              <div style="font-size: 18px; font-weight: 700; margin: 4px 0; color: {% if report.dkim.grade in ['A', 'B'] %}#16a34a{% else %}#dc2626{% endif %};">
+                {{ report.dkim.grade }}
+              </div>
+              <div style="font-size: 11px; color: #64748b;">{{ report.dkim.score }}%</div>
+            </div>
+          </td>
+          <!-- DMARC -->
+          <td width="32%" style="padding: 4px;">
+            <div class="card" style="text-align: center; margin: 0; padding: 12px 8px;">
+              <div style="font-size: 12px; color: #64748b; font-weight: 600;">DMARC</div>
+              <div style="font-size: 18px; font-weight: 700; margin: 4px 0; color: {% if report.dmarc.grade in ['A', 'B'] %}#16a34a{% else %}#dc2626{% endif %};">
+                {{ report.dmarc.grade }}
+              </div>
+              <div style="font-size: 11px; color: #64748b;">{{ report.dmarc.score }}%</div>
+            </div>
+          </td>
+        </tr>
+      </table>
+
+      <!-- Links Analysis -->
+      <h3 style="font-size: 16px; margin: 20px 0 10px; color: #334155; font-weight: 600;">URL & Phishing Inspection</h3>
+      <div class="card">
+        <p style="margin: 0 0 8px; font-size: 13px;">
+          <strong>Total Links:</strong> {{ report.links.total_links }} &nbsp;|&nbsp; 
+          <strong>Suspicious Links:</strong> {{ report.links.suspicious_links|length }}
+        </p>
+        {% if report.links.suspicious_links %}
+          <div style="margin-top: 8px;">
+            {% for link in report.links.suspicious_links %}
+              <div style="background-color: #fee2e2; border-left: 3px solid #dc2626; padding: 8px 10px; border-radius: 4px; margin-bottom: 6px; font-size: 12px;">
+                <div style="word-break: break-all; font-weight: 600; color: #991b1b;">{{ link.url }}</div>
+                <div style="color: #b91c1c; margin-top: 2px;">{{ link.reasons|join(', ') }}</div>
+              </div>
+            {% endfor %}
+          </div>
+        {% else %}
+          <p style="margin: 0; font-size: 12px; color: #16a34a;">✅ No malicious or deceptive URLs identified in this email.</p>
+        {% endif %}
+      </div>
+
+      <!-- Attachment Results -->
+      <h3 style="font-size: 16px; margin: 20px 0 10px; color: #334155; font-weight: 600;">Attachment Threat Analysis</h3>
+      <div class="card">
+        {% if report.attachments %}
+          {% for filename, att in report.attachments.items() %}
+            <div style="padding: 8px 0; border-bottom: 1px solid #e9ecf2;">
+              <table width="100%">
+                <tr>
+                  <td style="font-size: 13px; font-weight: 600;">📎 {{ filename }}</td>
+                  <td style="text-align: right;">
+                    {% if att.status == 'safe' %}
+                      <span class="badge badge-safe">Safe (0 detections)</span>
+                    {% elif att.status == 'suspicious' %}
+                      <span class="badge badge-warning">Suspicious</span>
+                    {% elif att.status == 'unsafe' %}
+                      <span class="badge badge-danger">Threat Detected</span>
+                    {% else %}
+                      <span class="badge" style="background-color: #e2e8f0; color: #475569;">Unscanned</span>
+                    {% endif %}
+                  </td>
+                </tr>
+              </table>
+              <div style="font-size: 12px; color: #64748b; margin-top: 4px;">{{ att.details }}</div>
+            </div>
+          {% endfor %}
+        {% else %}
+          <p style="margin: 0; font-size: 12px; color: #64748b;">No files were attached to this email.</p>
+        {% endif %}
+      </div>
+    </div>
+
+    <!-- Footer -->
+    <div style="background-color: #f1f5f9; padding: 16px 20px; text-align: center; font-size: 12px; color: #64748b; border-top: 1px solid #e2e8f0;">
+      Generated securely by <strong>SpamOut</strong>. Keep your inbox safe by forwarding suspicious emails anytime.
+    </div>
+  </div>
+</body>
+</html>
