@@ -7,6 +7,8 @@ import time
 import dns.resolver
 import re
 import base64
+from pathlib import Path
+from dotenv import load_dotenv
 from email import policy
 import smtplib
 from email.mime.text import MIMEText
@@ -22,24 +24,31 @@ from googleapiclient.discovery import build
 from bs4 import BeautifulSoup
 import urllib.parse
 
+# Load environment configuration (.env in root or backend/.env as fallback)
+BASE_DIR = Path(__file__).resolve().parent
+load_dotenv(dotenv_path=BASE_DIR / ".env")
+if not os.getenv("EMAIL_ACCOUNT"):
+    load_dotenv(dotenv_path=BASE_DIR / "backend" / ".env")
+
 # Email configuration
-IMAP_SERVER = "imap.gmail.com"
-SMTP_SERVER = "smtp.gmail.com"
-EMAIL_ACCOUNT = "contineo.crce@gmail.com"
-EMAIL_PASSWORD = "omle qjyw vlgr cvyn"
-ALLOWED_DOMAIN = "@gmail.com"
-CHECK_INTERVAL = 5  # Check for new emails every 30 seconds
+IMAP_SERVER = os.getenv("IMAP_SERVER", "imap.gmail.com")
+SMTP_SERVER = os.getenv("SMTP_SERVER", "smtp.gmail.com")
+SMTP_PORT = int(os.getenv("SMTP_PORT", "587"))
+EMAIL_ACCOUNT = os.getenv("EMAIL_ACCOUNT", "")
+EMAIL_PASSWORD = os.getenv("EMAIL_PASSWORD", "")
+ALLOWED_DOMAIN = os.getenv("ALLOWED_DOMAIN", "@gmail.com")
+CHECK_INTERVAL = int(os.getenv("CHECK_INTERVAL", "5"))
 
 # Gmail API configuration
 SCOPES = ['https://www.googleapis.com/auth/gmail.readonly']
-CLIENT_SECRETS_FILE = "./credentials.json"  # You'll need to create this file
-API_KEY = "AIzaSyCEp3ZGODSMkSUXnecWTo8DXfdyRi_dVdQ"
+CLIENT_SECRETS_FILE = os.getenv("GOOGLE_CLIENT_SECRETS_FILE", "./credentials.json")
+API_KEY = os.getenv("GMAIL_API_KEY") or os.getenv("API_KEY", "")
 
 # Attachment handling configuration
-ATTACHMENT_SAVE_PATH = "./attachments"
-QUARANTINE_PATH = "./quarantine"
-VT_API_KEY = "1b817d672b36edeb26c65ce8e63836a1bf37d936bceb9fb27e07e53272d31366"
-VT_API_ENDPOINT = "https://www.virustotal.com/vtapi/v2/file/report"
+ATTACHMENT_SAVE_PATH = os.getenv("ATTACHMENT_SAVE_PATH", "./attachments")
+QUARANTINE_PATH = os.getenv("QUARANTINE_PATH", "./quarantine")
+VT_API_KEY = os.getenv("VT_API_KEY", "")
+VT_API_ENDPOINT = os.getenv("VT_API_ENDPOINT", "https://www.virustotal.com/vtapi/v2/file/report")
 
 # Email HTML directory
 EMAIL_HTML_DIR = "./email_html"
@@ -544,6 +553,10 @@ def get_file_hash(file_path):
 
 def scan_file_virustotal(file_path):
     """Scan a file using VirusTotal API."""
+    if not VT_API_KEY:
+        print("VirusTotal API key not configured. Skipping scan.")
+        return None, "VT_API_KEY not configured"
+
     file_hash = get_file_hash(file_path)
 
     params = {
@@ -684,7 +697,7 @@ For detailed report, please view this email in an HTML-compatible email client.
         msg.attach(part2)
 
         # Create SMTP connection in context manager
-        with smtplib.SMTP(SMTP_SERVER, 587) as server:
+        with smtplib.SMTP(SMTP_SERVER, SMTP_PORT) as server:
             server.starttls()
             server.login(EMAIL_ACCOUNT, EMAIL_PASSWORD)
             server.send_message(msg)
@@ -729,7 +742,7 @@ def send_security_alert(sender_email, security_results):
 
         msg.attach(MIMEText(body, "plain"))
 
-        server = smtplib.SMTP(SMTP_SERVER, 587)
+        server = smtplib.SMTP(SMTP_SERVER, SMTP_PORT)
         server.starttls()
         server.login(EMAIL_ACCOUNT, EMAIL_PASSWORD)
         server.sendmail(EMAIL_ACCOUNT, sender_email, msg.as_string())

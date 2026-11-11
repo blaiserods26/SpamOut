@@ -16,6 +16,12 @@ class EmailSecurityScanner:
     def __init__(self, vt_api_key: Optional[str] = None):
         self.vt_api_key = vt_api_key
         self.vt_api_endpoint = "https://www.virustotal.com/vtapi/v2/file/report"
+        self.resolver = dns.resolver.Resolver()
+        self.resolver.lifetime = 2.5
+        self.resolver.timeout = 2.0
+        self._cache_spf: Dict[str, Dict[str, Any]] = {}
+        self._cache_dkim: Dict[str, Dict[str, Any]] = {}
+        self._cache_dmarc: Dict[str, Dict[str, Any]] = {}
 
     @staticmethod
     def extract_domain_from_email(email_str: str) -> Optional[str]:
@@ -26,9 +32,17 @@ class EmailSecurityScanner:
         return match.group(1).lower() if match else None
 
     def analyze_spf(self, domain: str) -> Dict[str, Any]:
+        """Analyze SPF record for a domain with caching."""
+        if domain in self._cache_spf:
+            return self._cache_spf[domain]
+        res = self._do_analyze_spf(domain)
+        self._cache_spf[domain] = res
+        return res
+
+    def _do_analyze_spf(self, domain: str) -> Dict[str, Any]:
         """Analyze SPF record for a domain."""
         try:
-            answers = dns.resolver.resolve(domain, 'TXT')
+            answers = self.resolver.resolve(domain, 'TXT')
             spf_records = [txt.to_text().strip('"') for txt in answers if 'v=spf1' in txt.to_text()]
 
             if not spf_records:
@@ -98,10 +112,19 @@ class EmailSecurityScanner:
             }
 
     def analyze_dkim(self, domain: str, selector: str = 'default') -> Dict[str, Any]:
+        """Analyze DKIM record for a domain given a selector with caching."""
+        cache_key = f"{selector}:{domain}"
+        if cache_key in self._cache_dkim:
+            return self._cache_dkim[cache_key]
+        res = self._do_analyze_dkim(domain, selector)
+        self._cache_dkim[cache_key] = res
+        return res
+
+    def _do_analyze_dkim(self, domain: str, selector: str = 'default') -> Dict[str, Any]:
         """Analyze DKIM record for a domain given a selector."""
         try:
             dkim_domain = f"{selector}._domainkey.{domain}"
-            answers = dns.resolver.resolve(dkim_domain, 'TXT')
+            answers = self.resolver.resolve(dkim_domain, 'TXT')
             dkim_records = [txt.to_text().strip('"') for txt in answers if 'v=DKIM1' in txt.to_text() or 'p=' in txt.to_text()]
 
             if not dkim_records:
@@ -160,10 +183,18 @@ class EmailSecurityScanner:
             }
 
     def analyze_dmarc(self, domain: str) -> Dict[str, Any]:
+        """Analyze DMARC record for a domain with caching."""
+        if domain in self._cache_dmarc:
+            return self._cache_dmarc[domain]
+        res = self._do_analyze_dmarc(domain)
+        self._cache_dmarc[domain] = res
+        return res
+
+    def _do_analyze_dmarc(self, domain: str) -> Dict[str, Any]:
         """Analyze DMARC record for a domain."""
         try:
             dmarc_domain = f"_dmarc.{domain}"
-            answers = dns.resolver.resolve(dmarc_domain, 'TXT')
+            answers = self.resolver.resolve(dmarc_domain, 'TXT')
             dmarc_records = [txt.to_text().strip('"') for txt in answers if 'v=DMARC1' in txt.to_text()]
 
             if not dmarc_records:
