@@ -1,10 +1,15 @@
-beautifulsoup4==4.9.3
-cryptography==3.4.7
-dnspython==2.1.0
-google-api-python-client
-google-auth
-google-auth-oauthlib
-google-auth-httplib2
-httplib2
-oauth2client
-requests
+# SpamOut Core & Services
+dnspython>=2.7.0
+beautifulsoup4>=4.12.0
+cryptography>=43.0.1
+requests>=2.32.0
+python-dotenv>=1.0.1
+jinja2>=3.1.5
+
+# Flask Web API & Google OAuth
+flask>=3.0.0
+google-api-python-client>=2.150.0
+google-auth>=2.35.0
+google-auth-oauthlib>=1.2.0
+google-auth-httplib2>=0.2.0
+httplib2>=0.22.0
